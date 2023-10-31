@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime, timedelta, date
 from PyQt5 import QtCore, QtWidgets, QtSql
 from dialogs import TaskDialog
-from styles_or_delegations import QCalendarWidget, DateDelegate
+from styles_and_delegations import QCalendarWidget, DateDelegate
 
 
 class TableManager(QtWidgets.QWidget):
