@@ -348,8 +348,6 @@ class WeekTable(TableManager):
             tableview.hideColumn(6)
             tableview.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
             tableview.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-            tableview.resizeColumnsToContents()
-            tableview.resizeRowsToContents()
         self.exec_query()
 
     def week_changed(self):
@@ -362,6 +360,8 @@ class WeekTable(TableManager):
                     '{self.weekdates[self.tableviews.index(tableview)].toString("yyyy-MM-dd")}' 
                     ORDER BY dateline ASC, deadline ASC""")
             model.setQuery(self.query)
+            tableview.resizeColumnsToContents()
+            tableview.resizeRowsToContents()
 
     @staticmethod
     def get_week_dates(date):
