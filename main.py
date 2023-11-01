@@ -18,6 +18,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.initUI()
 
     def initUI(self):
+        self.setWindowTitle("TaskPlanner")
         self.tab_widget = QtWidgets.QTabWidget(self)
         self.maintable = TableManager(self.user)
         self.tab_widget.addTab(self.maintable, "Задачи на день")
