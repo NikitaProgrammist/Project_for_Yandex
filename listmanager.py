@@ -30,7 +30,7 @@ class ListManager(QtWidgets.QWidget):
         self.choose_priority = QComboBox(self)
         self.choose_priority.addItem("Все")
         self.priority_items = sorted(set([str(_[0]) for _ in self.cursor.execute(f"""SELECT priority 
-        FROM {self.user}""").fetchall()]))
+        FROM {self.user}""").fetchall()]), key=int)
         self.choose_priority.addItems(self.priority_items)
         self.choose_priority.model().itemChanged.connect(self.f)
         self.filter = QtWidgets.QLineEdit(self)
