@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QFont
 
 
@@ -15,3 +15,15 @@ class QCalendarWidget(QtWidgets.QCalendarWidget):
         self.setFont(font)
         self.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
         self.setGridVisible(True)
+
+
+class QComboBox(QtWidgets.QComboBox):
+    def addItem(self, item):
+        super(QComboBox, self).addItem(item)
+        item = self.model().item(self.count()-1, 0)
+        item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
+        item.setCheckState(QtCore.Qt.Unchecked)
+
+    def addItems(self, items):
+        for i in items:
+            self.addItem(i)

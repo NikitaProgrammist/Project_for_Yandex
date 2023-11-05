@@ -1,6 +1,7 @@
 import sqlite3
 from PyQt5 import QtCore, QtWidgets, QtSql
 from dialogs import ProblemDialog
+from styles_and_delegations import QComboBox
 
 
 class ListManager(QtWidgets.QWidget):
@@ -26,11 +27,12 @@ class ListManager(QtWidgets.QWidget):
         low_layout.addWidget(self.delete_task_button)
         low_layout.addWidget(self.show_all_button)
         high_layout = QtWidgets.QHBoxLayout()
-        self.choose_priority = QtWidgets.QComboBox(self)
+        self.choose_priority = QComboBox(self)
         self.choose_priority.addItem("Все")
         self.priority_items = sorted(set([str(_[0]) for _ in self.cursor.execute(f"""SELECT priority 
         FROM {self.user}""").fetchall()]))
         self.choose_priority.addItems(self.priority_items)
+        self.choose_priority.model().itemChanged.connect(self.f)
         self.filter = QtWidgets.QLineEdit(self)
         self.filter_button = QtWidgets.QPushButton("Искать")
         high_layout.addWidget(self.choose_priority)
@@ -63,6 +65,16 @@ class ListManager(QtWidgets.QWidget):
         self.task_table.clicked.connect(self.cell_changed)
         self.row = -1
 
+    def f(self, item):
+        if item == self.choose_priority.model().item(0, 0) and not item.checkState():
+            for i in range(1, self.choose_priority.count()):
+                self.choose_priority.model().item(i, 0).setCheckState(QtCore.Qt.Unchecked)
+            return
+        if item == self.choose_priority.model().item(0, 0) and item.checkState():
+            for i in range(1, self.choose_priority.count()):
+                self.choose_priority.model().item(i, 0).setCheckState(QtCore.Qt.Checked)
+            return
+
     def cell_changed(self, index):
         if index.row() != self.row:
             self.task_table.selectionModel().clearSelection()
@@ -73,12 +85,18 @@ class ListManager(QtWidgets.QWidget):
             self.task_table.selectionModel().clearSelection()
 
     def filter_func(self):
-        priority = self.choose_priority.currentText()
+        priority = []
+        for i in range(self.choose_priority.count()):
+            item = self.choose_priority.model().item(i)
+            if item.checkState() == QtCore.Qt.Checked:
+                priority.append(item.text())
         name = self.filter.text()
-        if priority != "Все":
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE priority = {priority} and name like '%{name}%'""")
+        if "Все" not in priority:
+            self.query.exec(f"""SELECT * FROM {self.user} WHERE priority in ({', '.join(priority)}) and name like 
+            '%{name}%' ORDER BY priority DESC, name ASC""")
         else:
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE name like '%{name}%'""")
+            self.query.exec(f"""SELECT * FROM {self.user} WHERE name like '%{name}%' 
+            ORDER BY priority DESC, name ASC""")
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
@@ -150,13 +168,19 @@ class ListManager(QtWidgets.QWidget):
 
 class MarkedTasks(ListManager):
     def filter_func(self):
-        priority = self.choose_priority.currentText()
+        priority = []
+        for i in range(self.choose_priority.count()):
+            item = self.choose_priority.model().item(i)
+            if item.checkState() == QtCore.Qt.Checked:
+                priority.append(item.text())
         name = self.filter.text()
-        if priority != "Все":
+        if "Все" not in priority:
             self.query.exec(f"""SELECT * FROM {self.user} WHERE marketed = 'Да' and 
-            priority = {priority} and name like '%{name}%'""")
+            priority in ({', '.join(priority)}) and name like '%{name}%'
+            ORDER BY priority DESC, name ASC""")
         else:
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE marketed = 'Да' and name like '%{name}%'""")
+            self.query.exec(f"""SELECT * FROM {self.user} WHERE marketed = 'Да' and name like '%{name}%'
+            ORDER BY priority DESC, name ASC""")
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
@@ -175,13 +199,19 @@ class MarkedTasks(ListManager):
 
 class ImportantTasks(ListManager):
     def filter_func(self):
-        priority = self.choose_priority.currentText()
+        priority = []
+        for i in range(self.choose_priority.count()):
+            item = self.choose_priority.model().item(i)
+            if item.checkState() == QtCore.Qt.Checked:
+                priority.append(item.text())
         name = self.filter.text()
-        if priority != "Все":
+        if "Все" not in priority:
             self.query.exec(f"""SELECT * FROM {self.user} WHERE importance = 'Да' and 
-            priority = {priority} and name like '%{name}%'""")
+            priority in ({', '.join(priority)}) and name like '%{name}%'
+            ORDER BY priority DESC, name ASC""")
         else:
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE importance = 'Да' and name like '%{name}%'""")
+            self.query.exec(f"""SELECT * FROM {self.user} WHERE importance = 'Да' and name like '%{name}%'
+            ORDER BY priority DESC, name ASC""")
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
