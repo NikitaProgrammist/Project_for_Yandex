@@ -21,7 +21,7 @@ class QComboBox(QtWidgets.QComboBox):
         super(QComboBox, self).addItem(item)
         item = self.model().item(self.count()-1, 0)
         item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
-        item.setCheckState(QtCore.Qt.Unchecked)
+        item.setCheckState(QtCore.Qt.Checked)
 
     def addItems(self, items):
         for i in items:

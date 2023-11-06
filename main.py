@@ -43,11 +43,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if index == 1:
             self.weektable.week_changed()
         if index == 2:
-            self.list_tasks.show_all_tasks()
+            self.list_tasks.filter_func()
         if index == 3:
-            self.marked_tasks.show_all_tasks()
+            self.marked_tasks.filter_func()
         if index == 4:
-            self.important_tasks.show_all_tasks()
+            self.important_tasks.filter_func()
 
     def login(self):
         dialog = LoginDialog(self)

@@ -11,7 +11,7 @@ class ListManager(QtWidgets.QWidget):
         self.connection = sqlite3.connect('task_manager.db')
         self.cursor = self.connection.cursor()
         self.initUI()
-        self.show_all_tasks()
+        self.filter_func()
 
     def initUI(self):
         main_layout = QtWidgets.QVBoxLayout(self)
@@ -56,6 +56,9 @@ class ListManager(QtWidgets.QWidget):
         self.task_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
+        self.task_table.hideColumn(0)
+        self.task_table.hideColumn(4)
+        self.task_table.hideColumn(5)
         self.filter_button.clicked.connect(self.filter_func)
         self.add_task_button.clicked.connect(self.add_task)
         self.edit_task_button.clicked.connect(self.edit_task)
@@ -107,9 +110,6 @@ class ListManager(QtWidgets.QWidget):
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
-        self.task_table.hideColumn(0)
-        self.task_table.hideColumn(4)
-        self.task_table.hideColumn(5)
 
     def add_task(self):
         dialog = ProblemDialog(self)
@@ -129,7 +129,7 @@ class ListManager(QtWidgets.QWidget):
             record.setValue("marketed", marketed)
             record.setValue("importance", importance)
             self.model.insertRecord(-1, record)
-        self.show_all_tasks()
+        self.filter_func()
 
     def edit_task(self):
         selected_row = self.task_table.selectionModel().currentIndex().row()
@@ -156,13 +156,13 @@ class ListManager(QtWidgets.QWidget):
                 self.query.exec(f"""REPLACE INTO {self.user} (id, name, description, priority, marketed, importance) 
                 VALUES ({id}, '{name}', '{description}', {priority}, '{marketed}', '{importance}')""")
                 self.model.setQuery(self.query)
-        self.show_all_tasks()
+        self.filter_func()
 
     def delete_task(self):
         selected_row = self.task_table.selectionModel().currentIndex().row()
         if selected_row >= 0:
             self.model.removeRow(selected_row)
-        self.show_all_tasks()
+        self.filter_func()
 
 
 class MarkedTasks(ListManager):
@@ -191,9 +191,6 @@ class MarkedTasks(ListManager):
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
-        self.task_table.hideColumn(0)
-        self.task_table.hideColumn(4)
-        self.task_table.hideColumn(5)
 
 
 class ImportantTasks(ListManager):
@@ -222,6 +219,3 @@ class ImportantTasks(ListManager):
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
-        self.task_table.hideColumn(0)
-        self.task_table.hideColumn(4)
-        self.task_table.hideColumn(5)
