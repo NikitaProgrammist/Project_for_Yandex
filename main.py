@@ -18,6 +18,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.initUI()
 
     def initUI(self):
+        self.setGeometry(0, 0, 1000, 750)
+        resolution = QtWidgets.QDesktopWidget().screenGeometry()
+        self.move((resolution.width() // 2) - (self.frameSize().width() // 2),
+                  (resolution.height() // 2) - (self.frameSize().height() // 2))
         self.setWindowTitle("TaskPlanner")
         self.tab_widget = QtWidgets.QTabWidget(self)
         self.maintable = TableManager(self.user)

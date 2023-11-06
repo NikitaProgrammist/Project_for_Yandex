@@ -54,7 +54,6 @@ class ListManager(QtWidgets.QWidget):
         self.task_table.setModel(self.model)
         self.task_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.task_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        # self.task_table.setSortingEnabled(True)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
         self.filter_button.clicked.connect(self.filter_func)
