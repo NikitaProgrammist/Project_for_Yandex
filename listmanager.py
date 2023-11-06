@@ -87,6 +87,7 @@ class ListManager(QtWidgets.QWidget):
             self.task_table.selectionModel().clearSelection()
 
     def filter_func(self):
+        self.model.select()
         priority = []
         for i in range(self.choose_priority.count()):
             item = self.choose_priority.model().item(i)
@@ -102,6 +103,9 @@ class ListManager(QtWidgets.QWidget):
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
+        self.task_table.hideColumn(0)
+        self.task_table.hideColumn(4)
+        self.task_table.hideColumn(5)
 
     def show_all_tasks(self):
         self.model.select()
@@ -167,6 +171,7 @@ class ListManager(QtWidgets.QWidget):
 
 class MarkedTasks(ListManager):
     def filter_func(self):
+        self.model.select()
         priority = []
         for i in range(self.choose_priority.count()):
             item = self.choose_priority.model().item(i)
@@ -195,6 +200,7 @@ class MarkedTasks(ListManager):
 
 class ImportantTasks(ListManager):
     def filter_func(self):
+        self.model.select()
         priority = []
         for i in range(self.choose_priority.count()):
             item = self.choose_priority.model().item(i)
@@ -211,6 +217,9 @@ class ImportantTasks(ListManager):
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
+        self.task_table.hideColumn(0)
+        self.task_table.hideColumn(4)
+        self.task_table.hideColumn(5)
 
     def show_all_tasks(self):
         self.model.select()
