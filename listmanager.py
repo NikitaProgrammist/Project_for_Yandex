@@ -188,6 +188,9 @@ class MarkedTasks(ListManager):
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
+        self.task_table.hideColumn(0)
+        self.task_table.hideColumn(4)
+        self.task_table.hideColumn(5)
 
     def show_all_tasks(self):
         self.model.select()
