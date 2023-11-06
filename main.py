@@ -1,5 +1,5 @@
 import sys
-from PyQt5 import QtWidgets, QtSql
+from PyQt5 import QtWidgets, QtSql, QtCore
 from tablemanager import TableManager, WeekTable
 from listmanager import ListManager, MarkedTasks, ImportantTasks
 from dialogs import LoginDialog
@@ -60,6 +60,11 @@ def except_hook(cls, exception, traceback):
 
 
 if __name__ == '__main__':
+    if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+    if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
     sys.excepthook = except_hook
     app = QtWidgets.QApplication([])
     window = MainWindow()
