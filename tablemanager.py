@@ -9,7 +9,7 @@ class TableManager(QtWidgets.QWidget):
     def __init__(self, user):
         super().__init__()
         self.user = user + '_table'
-        self.connection = sqlite3.connect('task_manager.db')
+        self.connection = sqlite3.connect('dist/task_manager.db')
         self.cursor = self.connection.cursor()
         self.initUI()
 

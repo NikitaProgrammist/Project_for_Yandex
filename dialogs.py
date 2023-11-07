@@ -6,7 +6,7 @@ class RegisterDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Регистрация")
-        self.connection = sqlite3.connect("task_manager.db")
+        self.connection = sqlite3.connect("dist/task_manager.db")
         self.cursor = self.connection.cursor()
         self.label_username = QtWidgets.QLabel("Имя пользователя:")
         self.label_password = QtWidgets.QLabel("Пароль:")
@@ -36,7 +36,7 @@ class RegisterDialog(QtWidgets.QDialog):
                 self.connection.commit()
                 QtWidgets.QMessageBox.information(self, "Успех", "Регистрация прошла успешно!")
                 self.accept()
-                conn = sqlite3.connect('task_manager.db')
+                conn = sqlite3.connect('dist/task_manager.db')
                 try:
                     conn.execute(f'''CREATE TABLE {username}_table
                                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +64,7 @@ class LoginDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Аутентификация")
-        self.connection = sqlite3.connect("task_manager.db")
+        self.connection = sqlite3.connect("dist/task_manager.db")
         self.cursor = self.connection.cursor()
         self.label_username = QtWidgets.QLabel("Имя пользователя:")
         self.label_password = QtWidgets.QLabel("Пароль:")
