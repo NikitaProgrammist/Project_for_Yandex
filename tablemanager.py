@@ -4,7 +4,7 @@ import datetime
 from datetime import timedelta
 from PyQt5 import QtCore, QtWidgets, QtSql
 from dialogs import TaskDialog
-from styles_and_delegations import QCalendarWidget, DateDelegate
+from styles_and_delegations import QCalendarWidget, TableViewDelegate
 
 
 class TableManager(QtWidgets.QWidget):
@@ -33,8 +33,6 @@ class TableManager(QtWidgets.QWidget):
         right_sidebar_layout = QtWidgets.QVBoxLayout()
 
         self.task_tableview = QtWidgets.QTableView(self)
-        date_delegate = DateDelegate()
-        self.task_tableview.setItemDelegateForColumn(1, date_delegate)
         self.task_tableview.clicked.connect(self.cell_changed)
 
         self.add_task_button = QtWidgets.QPushButton("Добавить задачу")
@@ -58,11 +56,6 @@ class TableManager(QtWidgets.QWidget):
         main_layout.addLayout(right_sidebar_layout)
 
         self.query = QtSql.QSqlQuery()
-        self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date > 
-        '{datetime.date.today().strftime('%Y-%m-%d')}' or (calendar_date='{datetime.date.today().strftime('%Y-%m-%d')}' 
-        and dateline > '{datetime.datetime.today().time().strftime("%H:%M")}') 
-        ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
-
         self.model = QtSql.QSqlTableModel(self)
         self.model.setTable(self.user)
         self.model.setHeaderData(0, QtCore.Qt.Horizontal, 'ИД')
@@ -72,7 +65,7 @@ class TableManager(QtWidgets.QWidget):
         self.model.setHeaderData(4, QtCore.Qt.Horizontal, 'Конец')
         self.model.setHeaderData(5, QtCore.Qt.Horizontal, 'Дублирование')
         self.model.setHeaderData(6, QtCore.Qt.Horizontal, 'До какого дня')
-        self.model.setQuery(self.query)
+        self.model.select()
         self.models = [self.model]
 
         self.task_tableview.setModel(self.model)
@@ -85,6 +78,7 @@ class TableManager(QtWidgets.QWidget):
         self.task_tableview.resizeColumnsToContents()
         self.task_tableview.resizeRowsToContents()
         self.tableviews = [self.task_tableview]
+        self.show_all_tasks()
 
     def cell_changed(self, index: QtWidgets.QTableWidgetItem) -> None:
         if (index.row(), self.sender()) != self.select_row_table:
@@ -102,10 +96,15 @@ class TableManager(QtWidgets.QWidget):
 
     def show_day_tasks(self, calendar_date: QtCore.QDate, tableview: QtWidgets.QTableView) -> None:
         self.models[self.tableviews.index(tableview)].select()
-        self.query.exec(f"""SELECT * FROM {self.user} WHERE 
+        query = f"""SELECT * FROM {self.user} WHERE 
                 calendar_date = '{calendar_date.toString("yyyy-MM-dd")}'
-                ORDER BY dateline ASC, deadline ASC""")
+                ORDER BY dateline ASC, deadline ASC"""
+        self.query.exec(query)
         self.models[self.tableviews.index(tableview)].setQuery(self.query)
+
+        delegate = TableViewDelegate()
+        for i in range(tableview.model().rowCount()):
+            tableview.setItemDelegateForRow(i, delegate)
         tableview.resizeColumnsToContents()
         tableview.resizeRowsToContents()
         self.select_row_table = (-1, self.tableviews[0])
@@ -117,6 +116,10 @@ class TableManager(QtWidgets.QWidget):
         and dateline > '{datetime.datetime.today().time().strftime("%H:%M")}') 
         ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
         self.model.setQuery(self.query)
+
+        delegate = TableViewDelegate()
+        for i in range(self.task_tableview.model().rowCount()):
+            self.task_tableview.setItemDelegateForRow(i, delegate)
         self.task_tableview.resizeColumnsToContents()
         self.task_tableview.resizeRowsToContents()
         self.select_row_table = (-1, self.tableviews[0])
@@ -366,13 +369,8 @@ class WeekTable(TableManager):
         self.exec_query()
 
     def exec_query(self) -> None:
-        for tableview, model in zip(self.tableviews, self.models):
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date = 
-                    '{self.weekdates[self.tableviews.index(tableview)].toString("yyyy-MM-dd")}' 
-                    ORDER BY dateline ASC, deadline ASC""")
-            model.setQuery(self.query)
-            tableview.resizeColumnsToContents()
-            tableview.resizeRowsToContents()
+        for i in zip(self.weekdates, self.tableviews):
+            self.show_day_tasks(*i)
 
     @staticmethod
     def get_week_dates(date: QtCore.QDate) -> list:

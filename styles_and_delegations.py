@@ -1,11 +1,27 @@
+import datetime
+import re
 from typing import Any
-
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 
-class DateDelegate(QtWidgets.QStyledItemDelegate):
+class TableViewDelegate(QtWidgets.QStyledItemDelegate):
     def displayText(self, value: str, locale: QtCore.QLocale) -> str:
-        return ':'.join(value.split('-')[::-1])
+        pattern = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+        if pattern.match(value):
+            return ':'.join(value.split('-')[::-1])
+        return value
+
+    def initStyleOption(self, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex):
+        super().initStyleOption(option, index)
+        model = index.model()
+        table_day = datetime.datetime.strptime(model.data(index.sibling(index.row(), 1)), "%Y-%m-%d").date()
+        deadline = datetime.datetime.strptime(model.data(index.sibling(index.row(), 4)), "%H:%M").time()
+        today_date = datetime.date.today()
+        today_time = datetime.datetime.today().time()
+        if table_day < today_date or (table_day == today_date and deadline < today_time):
+             option.palette.setColor(option.palette.Text, QtGui.QColor(125, 125, 125))
+        else:
+            option.palette.setColor(option.palette.Text, QtGui.QColor(0, 0, 0))
 
 
 class QCalendarWidget(QtWidgets.QCalendarWidget):
