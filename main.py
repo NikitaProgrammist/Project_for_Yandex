@@ -8,10 +8,12 @@ from dialogs import LoginDialog
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
         super().__init__()
+
         x = self.login()
         if x is None:
             sys.exit(0)
         self.user = x
+
         self.db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
         self.db.setDatabaseName('dist/task_manager.db')
         self.db.open()
