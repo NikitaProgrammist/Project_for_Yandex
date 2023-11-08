@@ -13,7 +13,7 @@ class MainWindow(QtWidgets.QMainWindow):
             sys.exit(0)
         self.user = x
         self.db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
-        self.db.setDatabaseName('task_manager.db')
+        self.db.setDatabaseName('dist/task_manager.db')
         self.db.open()
         self.initUI()
 
