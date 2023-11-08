@@ -251,55 +251,66 @@ class TableManager(QtWidgets.QWidget):
 
 
 class WeekTable(TableManager):
-    def initUI(self):
+    def initUI(self) -> None:
         self.week = QtWidgets.QDateEdit(QtCore.QDate.currentDate())
+        self.week.dateChanged.connect(self.week_changed)
         self.week.setCalendarPopup(True)
         self.weekdates = self.get_week_dates(QtCore.QDate.currentDate())
-        self.week.dateChanged.connect(self.week_changed)
+
         self.edit_task_button = QtWidgets.QPushButton("Редактировать задачу")
-        self.delete_task_button = QtWidgets.QPushButton("Удалить задачу")
         self.edit_task_button.clicked.connect(self.edit_task)
+
+        self.delete_task_button = QtWidgets.QPushButton("Удалить задачу")
         self.delete_task_button.clicked.connect(self.delete_task)
+
         monday_layout = QtWidgets.QVBoxLayout()
         self.monday_tableview = QtWidgets.QTableView(self)
         self.monday_tableview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         monday_layout.addWidget(QtWidgets.QLabel("Понедельник"))
         monday_layout.addWidget(self.monday_tableview)
+
         tuesday_layout = QtWidgets.QVBoxLayout()
         self.tuesday_tableview = QtWidgets.QTableView(self)
         self.tuesday_tableview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         tuesday_layout.addWidget(QtWidgets.QLabel("Вторник"))
         tuesday_layout.addWidget(self.tuesday_tableview)
+
         wednesday_layout = QtWidgets.QVBoxLayout()
         self.wednesday_tableview = QtWidgets.QTableView(self)
         self.wednesday_tableview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         wednesday_layout.addWidget(QtWidgets.QLabel("Среда"))
         wednesday_layout.addWidget(self.wednesday_tableview)
+
         thursday_layout = QtWidgets.QVBoxLayout()
         self.thursday_tableview = QtWidgets.QTableView(self)
         self.thursday_tableview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         thursday_layout.addWidget(QtWidgets.QLabel("Четверг"))
         thursday_layout.addWidget(self.thursday_tableview)
+
         friday_layout = QtWidgets.QVBoxLayout()
         self.friday_tableview = QtWidgets.QTableView(self)
         self.friday_tableview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         friday_layout.addWidget(QtWidgets.QLabel("Пятница"))
         friday_layout.addWidget(self.friday_tableview)
+
         saturday_layout = QtWidgets.QVBoxLayout()
         self.saturday_tableview = QtWidgets.QTableView(self)
         self.saturday_tableview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         saturday_layout.addWidget(QtWidgets.QLabel("Суббота"))
         saturday_layout.addWidget(self.saturday_tableview)
+
         sunday_layout = QtWidgets.QVBoxLayout()
         self.sunday_tableview = QtWidgets.QTableView(self)
         self.sunday_tableview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         sunday_layout.addWidget(QtWidgets.QLabel("Воскресенье"))
         sunday_layout.addWidget(self.sunday_tableview)
+
         self.tableviews = [self.monday_tableview, self.tuesday_tableview, self.wednesday_tableview,
                            self.thursday_tableview, self.friday_tableview, self.saturday_tableview,
                            self.sunday_tableview]
         for tableview in self.tableviews:
             tableview.clicked.connect(self.cell_changed)
+
         self.query = QtSql.QSqlQuery()
         self.monday_model = QtSql.QSqlTableModel(self)
         self.tuesday_model = QtSql.QSqlTableModel(self)
@@ -311,10 +322,12 @@ class WeekTable(TableManager):
         self.models = [self.monday_model, self.tuesday_model, self.wednesday_model, self.thursday_model,
                        self.friday_model, self.saturday_model, self.sunday_model]
         self.do_table_model()
+
         high_layout = QtWidgets.QHBoxLayout()
         high_layout.addWidget(self.week)
         high_layout.addWidget(self.edit_task_button)
         high_layout.addWidget(self.delete_task_button)
+
         h_layout = QtWidgets.QHBoxLayout()
         h_layout.addLayout(monday_layout)
         h_layout.addLayout(tuesday_layout)
@@ -323,10 +336,10 @@ class WeekTable(TableManager):
         h_layout.addLayout(friday_layout)
         h_layout.addLayout(saturday_layout)
         h_layout.addLayout(sunday_layout)
+
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addLayout(high_layout)
         main_layout.addLayout(h_layout)
-        self.select_row_table = (-1, self.tableviews[0])
 
     def do_table_model(self) -> None:
         for tableview, model in zip(self.tableviews, self.models):
