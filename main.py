@@ -6,7 +6,7 @@ from dialogs import LoginDialog
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         x = self.login()
         if x is None:
@@ -17,27 +17,35 @@ class MainWindow(QtWidgets.QMainWindow):
         self.db.open()
         self.initUI()
 
-    def initUI(self):
+    def initUI(self) -> None:
         self.setGeometry(0, 0, 1000, 750)
         resolution = QtWidgets.QDesktopWidget().screenGeometry()
         self.move((resolution.width() // 2) - (self.frameSize().width() // 2),
                   (resolution.height() // 2) - (self.frameSize().height() // 2))
         self.setWindowTitle("TaskPlanner")
+
         self.tab_widget = QtWidgets.QTabWidget(self)
+
         self.maintable = TableManager(self.user)
         self.tab_widget.addTab(self.maintable, "Задачи на день")
+
         self.weektable = WeekTable(self.user)
         self.tab_widget.addTab(self.weektable, "Задачи на неделю")
+
         self.list_tasks = ListManager(self.user)
         self.tab_widget.addTab(self.list_tasks, "Список задач")
+
         self.marked_tasks = MarkedTasks(self.user)
         self.tab_widget.addTab(self.marked_tasks, "Помеченные задачи")
+
         self.important_tasks = ImportantTasks(self.user)
         self.tab_widget.addTab(self.important_tasks, "Важные задачи")
+
         self.setCentralWidget(self.tab_widget)
+
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
-    def on_tab_changed(self, index):
+    def on_tab_changed(self, index: int) -> None:
         if index == 0:
             self.maintable.show_all_tasks()
         if index == 1:
@@ -49,7 +57,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if index == 4:
             self.important_tasks.filter_func()
 
-    def login(self):
+    def login(self) -> str:
         dialog = LoginDialog(self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             return dialog.username

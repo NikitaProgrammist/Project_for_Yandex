@@ -3,17 +3,25 @@ from PyQt5 import QtWidgets, QtCore
 
 
 class RegisterDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
+        self.initUI()
+
+    def initUI(self) -> None:
         self.setWindowTitle("Регистрация")
+
         self.connection = sqlite3.connect("dist/task_manager.db")
         self.cursor = self.connection.cursor()
+
         self.label_username = QtWidgets.QLabel("Имя пользователя:")
-        self.label_password = QtWidgets.QLabel("Пароль:")
         self.lineEdit_username = QtWidgets.QLineEdit()
+
+        self.label_password = QtWidgets.QLabel("Пароль:")
         self.lineEdit_password = QtWidgets.QLineEdit()
         self.lineEdit_password.setEchoMode(QtWidgets.QLineEdit.Password)
+
         self.button_register = QtWidgets.QPushButton("Зарегистрироваться")
+
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addWidget(self.label_username)
         self.layout.addWidget(self.lineEdit_username)
@@ -21,9 +29,10 @@ class RegisterDialog(QtWidgets.QDialog):
         self.layout.addWidget(self.lineEdit_password)
         self.layout.addWidget(self.button_register)
         self.setLayout(self.layout)
+
         self.button_register.clicked.connect(self.register)
 
-    def register(self):
+    def register(self) -> None:
         username = self.lineEdit_username.text()
         password = self.lineEdit_password.text()
         if username and password:
@@ -61,18 +70,26 @@ class RegisterDialog(QtWidgets.QDialog):
 
 
 class LoginDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
+        self.initUI()
+
+    def initUI(self) -> None:
         self.setWindowTitle("Аутентификация")
+
         self.connection = sqlite3.connect("dist/task_manager.db")
         self.cursor = self.connection.cursor()
+
         self.label_username = QtWidgets.QLabel("Имя пользователя:")
-        self.label_password = QtWidgets.QLabel("Пароль:")
         self.lineEdit_username = QtWidgets.QLineEdit()
+
+        self.label_password = QtWidgets.QLabel("Пароль:")
         self.lineEdit_password = QtWidgets.QLineEdit()
         self.lineEdit_password.setEchoMode(QtWidgets.QLineEdit.Password)
+
         self.button_login = QtWidgets.QPushButton("Войти")
         self.button_register = QtWidgets.QPushButton("Регистрация")
+
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addWidget(self.label_username)
         self.layout.addWidget(self.lineEdit_username)
@@ -81,14 +98,15 @@ class LoginDialog(QtWidgets.QDialog):
         self.layout.addWidget(self.button_login)
         self.layout.addWidget(self.button_register)
         self.setLayout(self.layout)
+
         self.button_login.clicked.connect(self.login)
         self.button_register.clicked.connect(self.show_register_dialog)
 
-    def show_register_dialog(self):
+    def show_register_dialog(self) -> None:
         dialog = RegisterDialog(self)
         dialog.exec()
 
-    def login(self):
+    def login(self) -> None:
         self.username = self.lineEdit_username.text()
         self.password = self.lineEdit_password.text()
         if self.username and self.password:
@@ -101,21 +119,30 @@ class LoginDialog(QtWidgets.QDialog):
 
 
 class TaskDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
+        self.initUI()
+
+    def initUI(self) -> None:
         self.name_label = QtWidgets.QLabel("Название:")
         self.name_field = QtWidgets.QPlainTextEdit()
+
         self.date_label = QtWidgets.QLabel("Начало:")
         self.date_field = QtWidgets.QTimeEdit(QtCore.QTime.currentTime())
+
         self.deadline_label = QtWidgets.QLabel("Окончание:")
         self.deadline_field = QtWidgets.QTimeEdit(QtCore.QTime.currentTime())
+
         self.priority_label = QtWidgets.QLabel("Повторяется:")
         self.priority_field = QtWidgets.QComboBox()
         self.priority_field.addItems(['Никогда', 'Каждый день', 'Каждую неделю', 'Каждый месяц'])
+
         self.time_label = QtWidgets.QLabel("Повторять до:")
         self.time_field = QtWidgets.QDateEdit(QtCore.QDate.currentDate())
         self.time_field.setCalendarPopup(True)
+
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+
         layout = QtWidgets.QFormLayout()
         layout.addRow(self.name_label, self.name_field)
         layout.addRow(self.date_label, self.date_field)
@@ -124,30 +151,41 @@ class TaskDialog(QtWidgets.QDialog):
         layout.addRow(self.time_label, self.time_field)
         layout.addWidget(self.button_box)
         self.setLayout(layout)
+
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
 
 class ProblemDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
+        self.parent = parent
+        self.initUI()
+
+    def initUI(self) -> None:
         self.name_label = QtWidgets.QLabel("Название:")
         self.name_field = QtWidgets.QLineEdit()
+
         self.description_label = QtWidgets.QLabel("Описание:")
         self.description_field = QtWidgets.QPlainTextEdit()
+
         self.priority_label = QtWidgets.QLabel("Приоритет:")
         self.priority_field = QtWidgets.QSpinBox()
+
         self.marketed_label = QtWidgets.QLabel("Помеченная:")
         self.marketed_field = QtWidgets.QComboBox()
         self.marketed_field.addItems(['Да', 'Нет'])
-        if parent.__class__.__name__ == 'MarkedTasks':
+        if self.parent.__class__.__name__ == 'MarkedTasks':
             self.marketed_field.setEnabled(False)
+
         self.importance_label = QtWidgets.QLabel("Важная:")
         self.importance_field = QtWidgets.QComboBox()
         self.importance_field.addItems(['Да', 'Нет'])
-        if parent.__class__.__name__ == 'ImportantTasks':
+        if self.parent.__class__.__name__ == 'ImportantTasks':
             self.importance_field.setEnabled(False)
+
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+
         layout = QtWidgets.QFormLayout()
         layout.addRow(self.name_label, self.name_field)
         layout.addRow(self.description_label, self.description_field)
@@ -156,5 +194,6 @@ class ProblemDialog(QtWidgets.QDialog):
         layout.addRow(self.importance_label, self.importance_field)
         layout.addWidget(self.button_box)
         self.setLayout(layout)
+
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
