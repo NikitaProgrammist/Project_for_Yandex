@@ -6,37 +6,60 @@ from styles_and_delegations import QCalendarWidget, DateDelegate
 
 
 class TableManager(QtWidgets.QWidget):
-    def __init__(self, user):
+    def __init__(self, user: str) -> None:
         super().__init__()
         self.user = user + '_table'
+
         self.connection = sqlite3.connect('dist/task_manager.db')
         self.cursor = self.connection.cursor()
-        self.initUI()
 
-    def initUI(self):
+        self.initUI()
+        self.select_row_table = (-1, self.tableviews[0])
+
+    def initUI(self) -> None:
+        main_layout = QtWidgets.QHBoxLayout(self)
+
+        left_sidebar_layout = QtWidgets.QVBoxLayout()
+
         self.calendar_widget = QCalendarWidget(self)
+        self.calendar_widget.clicked.connect(self.calendar_day)
+
+        left_sidebar_layout.addWidget(QtWidgets.QLabel("Календарь"))
+        left_sidebar_layout.addWidget(self.calendar_widget)
+        main_layout.addLayout(left_sidebar_layout)
+
+        right_sidebar_layout = QtWidgets.QVBoxLayout()
+
         self.task_tableview = QtWidgets.QTableView(self)
         date_delegate = DateDelegate()
         self.task_tableview.setItemDelegateForColumn(1, date_delegate)
-        self.task_tableview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.task_tableview.clicked.connect(self.cell_changed)
+
         self.add_task_button = QtWidgets.QPushButton("Добавить задачу")
+        self.add_task_button.clicked.connect(self.add_task)
+
         self.edit_task_button = QtWidgets.QPushButton("Редактировать задачу")
+        self.edit_task_button.clicked.connect(self.edit_task)
+
         self.delete_task_button = QtWidgets.QPushButton("Удалить задачу")
+        self.delete_task_button.clicked.connect(self.delete_task)
+
         self.show_all_button = QtWidgets.QPushButton("Все задачи")
-        main_layout = QtWidgets.QHBoxLayout(self)
-        left_sidebar_layout = QtWidgets.QVBoxLayout()
-        main_layout.addLayout(left_sidebar_layout)
-        right_sidebar_layout = QtWidgets.QVBoxLayout()
-        main_layout.addLayout(right_sidebar_layout)
-        left_sidebar_layout.addWidget(QtWidgets.QLabel("Календарь"))
-        left_sidebar_layout.addWidget(self.calendar_widget)
+        self.show_all_button.clicked.connect(self.show_all_tasks)
+
         right_sidebar_layout.addWidget(QtWidgets.QLabel("Расписание"))
         right_sidebar_layout.addWidget(self.task_tableview)
         right_sidebar_layout.addWidget(self.add_task_button)
         right_sidebar_layout.addWidget(self.edit_task_button)
         right_sidebar_layout.addWidget(self.delete_task_button)
         right_sidebar_layout.addWidget(self.show_all_button)
+        main_layout.addLayout(right_sidebar_layout)
+
         self.query = QtSql.QSqlQuery()
+        self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date > '{date.today().strftime('%Y-%m-%d')}' or 
+        (calendar_date = '{date.today().strftime('%Y-%m-%d')}' and dateline > 
+        '{datetime.today().time().strftime("%H:%M")}') ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
+
         self.model = QtSql.QSqlTableModel(self)
         self.model.setTable(self.user)
         self.model.setHeaderData(0, QtCore.Qt.Horizontal, 'ИД')
@@ -46,39 +69,32 @@ class TableManager(QtWidgets.QWidget):
         self.model.setHeaderData(4, QtCore.Qt.Horizontal, 'Конец')
         self.model.setHeaderData(5, QtCore.Qt.Horizontal, 'Дублирование')
         self.model.setHeaderData(6, QtCore.Qt.Horizontal, 'До какого дня')
-        self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date >= '{date.today().strftime('%Y-%m-%d')}'
-                        ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
         self.model.setQuery(self.query)
+        self.models = [self.model]
+
         self.task_tableview.setModel(self.model)
         self.task_tableview.hideColumn(0)
         self.task_tableview.hideColumn(5)
         self.task_tableview.hideColumn(6)
         self.task_tableview.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.task_tableview.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.task_tableview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.task_tableview.resizeColumnsToContents()
         self.task_tableview.resizeRowsToContents()
-        self.add_task_button.clicked.connect(self.add_task)
-        self.edit_task_button.clicked.connect(self.edit_task)
-        self.delete_task_button.clicked.connect(self.delete_task)
-        self.show_all_button.clicked.connect(self.show_all_tasks)
-        self.calendar_widget.clicked.connect(self.show_day)
         self.tableviews = [self.task_tableview]
-        self.models = [self.model]
-        self.task_tableview.clicked.connect(self.cell_changed)
-        self.row = (-1, self.tableviews[0])
 
-    def cell_changed(self, index):
-        if (index.row(), self.sender()) != self.row:
+    def cell_changed(self, index: QtWidgets.QTableWidgetItem) -> None:
+        if (index.row(), self.sender()) != self.select_row_table:
             for tableview in self.tableviews:
                 tableview.selectionModel().clearSelection()
             self.sender().selectRow(index.row())
-            self.row = (index.row(), self.sender())
+            self.select_row_table = (index.row(), self.sender())
         else:
-            self.row = (-1, self.tableviews[0])
+            self.select_row_table = (-1, self.tableviews[0])
             for tableview in self.tableviews:
                 tableview.selectionModel().clearSelection()
 
-    def show_day(self):
+    def calendar_day(self) -> None:
         self.model.select()
         self.query.exec(f"""SELECT * FROM {self.user} WHERE 
         calendar_date = '{self.calendar_widget.selectedDate().toString("yyyy-MM-dd")}'
@@ -86,9 +102,9 @@ class TableManager(QtWidgets.QWidget):
         self.model.setQuery(self.query)
         self.task_tableview.resizeColumnsToContents()
         self.task_tableview.resizeRowsToContents()
-        self.row = (-1, self.tableviews[0])
+        self.select_row_table = (-1, self.tableviews[0])
 
-    def show_day_tasks(self, calendar_date, tableview):
+    def show_day_tasks(self, calendar_date: QtCore.QDate, tableview: QtWidgets.QTableView) -> None:
         self.models[self.tableviews.index(tableview)].select()
         self.query.exec(f"""SELECT * FROM {self.user} WHERE 
                 calendar_date = '{calendar_date.toString("yyyy-MM-dd")}'
@@ -96,25 +112,27 @@ class TableManager(QtWidgets.QWidget):
         self.models[self.tableviews.index(tableview)].setQuery(self.query)
         tableview.resizeColumnsToContents()
         tableview.resizeRowsToContents()
-        self.row = (-1, self.tableviews[0])
+        self.select_row_table = (-1, self.tableviews[0])
 
-    def show_all_tasks(self):
+    def show_all_tasks(self) -> None:
+        print(datetime.today().time().strftime("%H:%M"))
         self.model.select()
-        self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date >= '{date.today().strftime('%Y-%m-%d')}'
-                        ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
+        self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date > '{date.today().strftime('%Y-%m-%d')}' or 
+        (calendar_date = '{date.today().strftime('%Y-%m-%d')}' and dateline > 
+        '{datetime.today().time().strftime("%H:%M")}') ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
         self.model.setQuery(self.query)
         self.task_tableview.resizeColumnsToContents()
         self.task_tableview.resizeRowsToContents()
-        self.row = (-1, self.tableviews[0])
+        self.select_row_table = (-1, self.tableviews[0])
 
-    def add_task(self):
+    def add_task(self) -> None:
         dialog = TaskDialog(self)
         calendar_date = self.calendar_widget.selectedDate()
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.accept(dialog, calendar_date.toPyDate(), self.model)
         self.show_day_tasks(calendar_date, self.task_tableview)
 
-    def edit_task(self):
+    def edit_task(self) -> None:
         selected_row = -1
         for tableview in self.tableviews:
             selected_row = tableview.selectionModel().currentIndex().row()
@@ -124,6 +142,7 @@ class TableManager(QtWidgets.QWidget):
                 break
         if selected_row < 0:
             return
+
         dialog = TaskDialog(self)
         record = model.record(selected_row)
         calendar_date = QtCore.QDate.fromString(record.value("calendar_date"), "yyyy-MM-dd")
@@ -132,19 +151,19 @@ class TableManager(QtWidgets.QWidget):
         deadline = QtCore.QTime.fromString(record.value("deadline"), "hh:mm")
         priority = record.value("priority")
         time = QtCore.QDate.fromString(record.value("time"), "yyyy-MM-dd")
+
         dialog.name_field.setPlainText(name)
         dialog.date_field.setTime(dateline)
         dialog.deadline_field.setTime(deadline)
         dialog.priority_field.setCurrentIndex(priority)
         dialog.time_field.setDate(time)
-        calendar_date = calendar_date.toPyDate()
-        time = dialog.time_field.date().toPyDate()
-        if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            self.delete(calendar_date, name, dateline, deadline, priority, time)
-            self.accept(dialog, calendar_date, model)
-        self.show_day_tasks(QtCore.QDate.fromString(record.value("calendar_date"), "yyyy-MM-dd"), table)
 
-    def delete_task(self):
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            self.delete(calendar_date.toPyDate(), name, dateline, deadline, priority, time.toPyDate())
+            self.accept(dialog, calendar_date.toPyDate(), model)
+        self.show_day_tasks(calendar_date, table)
+
+    def delete_task(self) -> None:
         selected_row = -1
         for tableview in self.tableviews:
             selected_row = tableview.selectionModel().currentIndex().row()
@@ -154,30 +173,39 @@ class TableManager(QtWidgets.QWidget):
                 break
         if selected_row < 0:
             return
-        valid = QtWidgets.QMessageBox.question(
-            self, '', f"""Удалить всю серию задач или только это?
-YES - Всю серию задач
-NO - Только эту задачу""",
-            QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-        if valid == QtWidgets.QMessageBox.No:
+
+        delBox = QtWidgets.QMessageBox()
+        delBox.setIcon(QtWidgets.QMessageBox.Question)
+        delBox.setText(f"""Удалить всю серию задач или только это?
+            YES - Всю серию задач
+            NO - Только эту задачу
+            Cancel - Не удалять задачу""")
+        delBox.setWindowTitle("Удалить задачи (-у)")
+        delBox.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+        valid = delBox.exec_()
+
+        if valid == QtWidgets.QMessageBox.Yes:
+            record = model.record(selected_row)
+            self.delete(QtCore.QDate.fromString(record.value("calendar_date"), "yyyy-MM-dd").toPyDate(),
+                        record.value("name"), QtCore.QTime.fromString(record.value("dateline"), "hh:mm"),
+                        QtCore.QTime.fromString(record.value("deadline"), "hh:mm"), record.value("priority"),
+                        QtCore.QDate.fromString(record.value("time"), "yyyy-MM-dd").toPyDate())
+            self.show_day_tasks(QtCore.QDate.fromString(model.record(selected_row).value("calendar_date"), "yyyy-MM-dd")
+                                , table)
+
+        elif valid == QtWidgets.QMessageBox.No:
             calendar_date = QtCore.QDate.fromString(model.record(selected_row).value("calendar_date"), "yyyy-MM-dd")
             model.removeRow(selected_row)
             self.show_day_tasks(calendar_date, table)
             return
-        record = model.record(selected_row)
-        self.delete(QtCore.QDate.fromString(record.value("calendar_date"), "yyyy-MM-dd").toPyDate(),
-                    record.value("name"), QtCore.QTime.fromString(record.value("dateline"), "hh:mm"),
-                    QtCore.QTime.fromString(record.value("deadline"), "hh:mm"), record.value("priority"),
-                    QtCore.QDate.fromString(record.value("time"), "yyyy-MM-dd").toPyDate())
-        self.show_day_tasks(QtCore.QDate.fromString(model.record(selected_row).value("calendar_date"), "yyyy-MM-dd"),
-                            table)
 
-    def accept(self, dialog, calendar_date, model):
+    def accept(self, dialog: QtWidgets.QDialog, calendar_date: date, model: QtSql.QSqlTableModel) -> None:
         name = dialog.name_field.toPlainText()
         dateline = dialog.date_field.time().toPyTime()
         deadline = dialog.deadline_field.time().toPyTime()
         priority = dialog.priority_field.currentIndex()
         time = dialog.time_field.date().toPyDate()
+
         col = 1
         if priority == 1:
             col = int((time - calendar_date).total_seconds() // 3600 // 24) + 1
@@ -186,6 +214,7 @@ NO - Только эту задачу""",
         if priority == 3:
             col = int((time.year - calendar_date.year) * 12 + time.month - calendar_date.month -
                       (time.day < calendar_date.day)) + 1
+
         for i in range(col):
             record = model.record()
             record.setValue("calendar_date", QtCore.QDate(calendar_date).toString("yyyy-MM-dd"))
@@ -195,6 +224,7 @@ NO - Только эту задачу""",
             record.setValue("priority", priority)
             record.setValue("time", QtCore.QDate(time).toString("yyyy-MM-dd"))
             model.insertRecord(-1, record)
+
             if priority == 1:
                 calendar_date += timedelta(days=1)
             if priority == 2:
@@ -328,7 +358,7 @@ class WeekTable(TableManager):
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addLayout(high_layout)
         main_layout.addLayout(h_layout)
-        self.row = (-1, self.tableviews[0])
+        self.select_row_table = (-1, self.tableviews[0])
 
     def do_table_model(self):
         for tableview, model in zip(self.tableviews, self.models):
