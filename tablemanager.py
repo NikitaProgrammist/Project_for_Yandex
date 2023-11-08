@@ -1,5 +1,7 @@
+import calendar
 import sqlite3
-from datetime import datetime, timedelta, date
+import datetime
+from datetime import timedelta
 from PyQt5 import QtCore, QtWidgets, QtSql
 from dialogs import TaskDialog
 from styles_and_delegations import QCalendarWidget, DateDelegate
@@ -56,9 +58,10 @@ class TableManager(QtWidgets.QWidget):
         main_layout.addLayout(right_sidebar_layout)
 
         self.query = QtSql.QSqlQuery()
-        self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date > '{date.today().strftime('%Y-%m-%d')}' or 
-        (calendar_date = '{date.today().strftime('%Y-%m-%d')}' and dateline > 
-        '{datetime.today().time().strftime("%H:%M")}') ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
+        self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date > 
+        '{datetime.date.today().strftime('%Y-%m-%d')}' or (calendar_date='{datetime.date.today().strftime('%Y-%m-%d')}' 
+        and dateline > '{datetime.datetime.today().time().strftime("%H:%M")}') 
+        ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
 
         self.model = QtSql.QSqlTableModel(self)
         self.model.setTable(self.user)
@@ -95,14 +98,7 @@ class TableManager(QtWidgets.QWidget):
                 tableview.selectionModel().clearSelection()
 
     def calendar_day(self) -> None:
-        self.model.select()
-        self.query.exec(f"""SELECT * FROM {self.user} WHERE 
-        calendar_date = '{self.calendar_widget.selectedDate().toString("yyyy-MM-dd")}'
-        ORDER BY dateline ASC, deadline ASC""")
-        self.model.setQuery(self.query)
-        self.task_tableview.resizeColumnsToContents()
-        self.task_tableview.resizeRowsToContents()
-        self.select_row_table = (-1, self.tableviews[0])
+        self.show_day_tasks(self.calendar_widget.selectedDate(), self.task_tableview)
 
     def show_day_tasks(self, calendar_date: QtCore.QDate, tableview: QtWidgets.QTableView) -> None:
         self.models[self.tableviews.index(tableview)].select()
@@ -115,19 +111,19 @@ class TableManager(QtWidgets.QWidget):
         self.select_row_table = (-1, self.tableviews[0])
 
     def show_all_tasks(self) -> None:
-        print(datetime.today().time().strftime("%H:%M"))
         self.model.select()
-        self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date > '{date.today().strftime('%Y-%m-%d')}' or 
-        (calendar_date = '{date.today().strftime('%Y-%m-%d')}' and dateline > 
-        '{datetime.today().time().strftime("%H:%M")}') ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
+        self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date > 
+        '{datetime.date.today().strftime('%Y-%m-%d')}' or (calendar_date='{datetime.date.today().strftime('%Y-%m-%d')}' 
+        and dateline > '{datetime.datetime.today().time().strftime("%H:%M")}') 
+        ORDER BY calendar_date ASC, dateline ASC, deadline ASC""")
         self.model.setQuery(self.query)
         self.task_tableview.resizeColumnsToContents()
         self.task_tableview.resizeRowsToContents()
         self.select_row_table = (-1, self.tableviews[0])
 
     def add_task(self) -> None:
-        dialog = TaskDialog(self)
         calendar_date = self.calendar_widget.selectedDate()
+        dialog = TaskDialog(calendar_date, self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.accept(dialog, calendar_date.toPyDate(), self.model)
         self.show_day_tasks(calendar_date, self.task_tableview)
@@ -143,7 +139,6 @@ class TableManager(QtWidgets.QWidget):
         if selected_row < 0:
             return
 
-        dialog = TaskDialog(self)
         record = model.record(selected_row)
         calendar_date = QtCore.QDate.fromString(record.value("calendar_date"), "yyyy-MM-dd")
         name = record.value("name")
@@ -152,6 +147,7 @@ class TableManager(QtWidgets.QWidget):
         priority = record.value("priority")
         time = QtCore.QDate.fromString(record.value("time"), "yyyy-MM-dd")
 
+        dialog = TaskDialog(calendar_date, self)
         dialog.name_field.setPlainText(name)
         dialog.date_field.setTime(dateline)
         dialog.deadline_field.setTime(deadline)
@@ -199,7 +195,7 @@ class TableManager(QtWidgets.QWidget):
             self.show_day_tasks(calendar_date, table)
             return
 
-    def accept(self, dialog: QtWidgets.QDialog, calendar_date: date, model: QtSql.QSqlTableModel) -> None:
+    def accept(self, dialog: QtWidgets.QDialog, calendar_date: datetime.date, model: QtSql.QSqlTableModel) -> None:
         name = dialog.name_field.toPlainText()
         dateline = dialog.date_field.time().toPyTime()
         deadline = dialog.deadline_field.time().toPyTime()
@@ -230,56 +226,28 @@ class TableManager(QtWidgets.QWidget):
             if priority == 2:
                 calendar_date += timedelta(days=7)
             if priority == 3:
-                if calendar_date.month + 1 <= 12:
-                    calendar_date = datetime(calendar_date.year, calendar_date.month + 1, calendar_date.day)
-                else:
-                    calendar_date = datetime(calendar_date.year + 1, 1, calendar_date.day)
+                calendar_date += timedelta(days=calendar.monthrange(calendar_date.year, calendar_date.month)[1])
         model.select()
 
-    def delete(self, calendar_date, name, dateline, deadline, priority, time):
-        if priority == 0 or calendar_date < QtCore.QDate(date.today()):
-            self.cursor.execute(f"""DELETE FROM {self.user} WHERE 
-                                calendar_date = '{QtCore.QDate(calendar_date).toString("yyyy-MM-dd")}' and 
-                                name = '{name}' and dateline = '{QtCore.QTime(dateline).toString("hh:mm")}' and 
-                                deadline = '{QtCore.QTime(deadline).toString("hh:mm")}' and priority = '{priority}' and 
-                                time = '{QtCore.QDate(time).toString("yyyy-MM-dd")}'""")
-            self.connection.commit()
-            return
-        col = 1
-        if priority == 1:
-            col = int((time - calendar_date).total_seconds() // 3600 // 24) + 1
-        if priority == 2:
-            col = int((time - calendar_date).total_seconds() // 3600 // 24 // 7) + 1
-        if priority == 3:
-            col = int((time.year - calendar_date.year) * 12 + time.month - calendar_date.month -
-                      (time.day < calendar_date.day)) + 1
-        for i in range(col):
-            if priority == 1:
-                calendar_date += timedelta(days=1)
-            if priority == 2:
-                calendar_date += timedelta(days=7)
-            if priority == 3:
-                if calendar_date.month + 1 <= 12:
-                    calendar_date = datetime(calendar_date.year, calendar_date.month + 1, calendar_date.day)
-                else:
-                    calendar_date = datetime(calendar_date.year + 1, 1, calendar_date.day)
-        while ((calendar_date.year, calendar_date.month, calendar_date.day) >=
-               (date.today().year, date.today().month, date.today().day)):
+    def delete(self, calendar_date: datetime.date, name: str, dateline: datetime.time, deadline: datetime.time,
+               priority: int, time: datetime.date) -> None:
+
+        while (calendar_date.year, calendar_date.month, calendar_date.day) <= (time.year, time.month, time.day):
             self.cursor.execute(f"""DELETE FROM {self.user} WHERE 
                             calendar_date = '{QtCore.QDate(calendar_date).toString("yyyy-MM-dd")}' and 
                             name = '{name}' and dateline = '{QtCore.QTime(dateline).toString("hh:mm")}' and 
                             deadline = '{QtCore.QTime(deadline).toString("hh:mm")}' and priority = '{priority}' and 
                             time = '{QtCore.QDate(time).toString("yyyy-MM-dd")}'""")
             self.connection.commit()
-            if priority == 1:
-                calendar_date -= timedelta(days=1)
-            if priority == 2:
-                calendar_date -= timedelta(days=7)
-            if priority == 3:
-                if calendar_date.month - 1 > 0:
-                    calendar_date = datetime(calendar_date.year, calendar_date.month - 1, calendar_date.day)
-                else:
-                    calendar_date = datetime(calendar_date.year - 1, 12, calendar_date.day)
+
+            if priority == 0:
+                break
+            elif priority == 1:
+                calendar_date += timedelta(days=1)
+            elif priority == 2:
+                calendar_date += timedelta(days=7)
+            elif priority == 3:
+                calendar_date += timedelta(days=calendar.monthrange(calendar_date.year, calendar_date.month)[1])
 
 
 class WeekTable(TableManager):
@@ -360,7 +328,7 @@ class WeekTable(TableManager):
         main_layout.addLayout(h_layout)
         self.select_row_table = (-1, self.tableviews[0])
 
-    def do_table_model(self):
+    def do_table_model(self) -> None:
         for tableview, model in zip(self.tableviews, self.models):
             model.setTable(self.user)
             model.setHeaderData(0, QtCore.Qt.Horizontal, 'ИД')
@@ -380,11 +348,11 @@ class WeekTable(TableManager):
             tableview.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.exec_query()
 
-    def week_changed(self):
+    def week_changed(self) -> None:
         self.weekdates = self.get_week_dates(self.week.date())
         self.exec_query()
 
-    def exec_query(self):
+    def exec_query(self) -> None:
         for tableview, model in zip(self.tableviews, self.models):
             self.query.exec(f"""SELECT * FROM {self.user} WHERE calendar_date = 
                     '{self.weekdates[self.tableviews.index(tableview)].toString("yyyy-MM-dd")}' 
@@ -394,7 +362,7 @@ class WeekTable(TableManager):
             tableview.resizeRowsToContents()
 
     @staticmethod
-    def get_week_dates(date):
+    def get_week_dates(date: QtCore.QDate) -> list:
         week_dates = []
         start_of_week = date.addDays(-date.dayOfWeek() + 1)
         for i in range(7):

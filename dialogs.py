@@ -1,3 +1,4 @@
+import datetime
 import sqlite3
 from PyQt5 import QtWidgets, QtCore
 
@@ -119,8 +120,9 @@ class LoginDialog(QtWidgets.QDialog):
 
 
 class TaskDialog(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget = None) -> None:
+    def __init__(self, calendar_date: datetime.date, parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
+        self.calendar_date = calendar_date
         self.initUI()
 
     def initUI(self) -> None:
@@ -138,7 +140,7 @@ class TaskDialog(QtWidgets.QDialog):
         self.priority_field.addItems(['Никогда', 'Каждый день', 'Каждую неделю', 'Каждый месяц'])
 
         self.time_label = QtWidgets.QLabel("Повторять до:")
-        self.time_field = QtWidgets.QDateEdit(QtCore.QDate.currentDate())
+        self.time_field = QtWidgets.QDateEdit(QtCore.QDate(datetime.date.today() + datetime.timedelta(days=1)))
         self.time_field.setCalendarPopup(True)
 
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
@@ -154,6 +156,13 @@ class TaskDialog(QtWidgets.QDialog):
 
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
+
+    def accept(self) -> None:
+        if self.time_field.date() <= self.calendar_date:
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Дата до которой надо повторять событие должна "
+                                                          "быть больше выбранной на календаре.")
+            return
+        super().accept()
 
 
 class ProblemDialog(QtWidgets.QDialog):
