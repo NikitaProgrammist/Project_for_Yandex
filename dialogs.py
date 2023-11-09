@@ -1,7 +1,7 @@
 import datetime
-import os
 import sqlite3
 from PyQt5 import QtWidgets, QtCore
+from db import path
 
 
 class RegisterDialog(QtWidgets.QDialog):
@@ -12,12 +12,7 @@ class RegisterDialog(QtWidgets.QDialog):
     def initUI(self) -> None:
         self.setWindowTitle("Регистрация")
 
-        path = os.path.abspath("dist/task_manager.db")
-        path = path.replace('\\', '/')
-        if 'dist/dist/' in path:
-            path = path.replace('dist/dist/', 'dist/')
-
-        self.connection = sqlite3.connect(path)
+        self.connection = sqlite3.connect(path())
         self.cursor = self.connection.cursor()
 
         self.label_username = QtWidgets.QLabel("Имя пользователя:")
@@ -52,7 +47,7 @@ class RegisterDialog(QtWidgets.QDialog):
                 self.connection.commit()
                 QtWidgets.QMessageBox.information(self, "Успех", "Регистрация прошла успешно!")
                 self.accept()
-                conn = sqlite3.connect('dist/task_manager.db')
+                conn = sqlite3.connect(path())
                 try:
                     conn.execute(f'''CREATE TABLE {username}_table
                                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,12 +79,7 @@ class LoginDialog(QtWidgets.QDialog):
     def initUI(self) -> None:
         self.setWindowTitle("Аутентификация")
 
-        path = os.path.abspath("dist/task_manager.db")
-        path = path.replace('\\', '/')
-        if 'dist/dist/' in path:
-            path = path.replace('dist/dist/', 'dist/')
-
-        self.connection = sqlite3.connect(path)
+        self.connection = sqlite3.connect(path())
         self.cursor = self.connection.cursor()
 
         self.label_username = QtWidgets.QLabel("Имя пользователя:")

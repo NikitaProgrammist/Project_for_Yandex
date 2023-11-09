@@ -1,6 +1,6 @@
-import os
 import sqlite3
 from PyQt5 import QtCore, QtWidgets, QtSql
+from db import path
 from dialogs import ProblemDialog
 from styles_and_delegations import QComboBox
 
@@ -11,12 +11,7 @@ class ListManager(QtWidgets.QWidget):
         self.user = user + '_list'
         self.select_row = -1
 
-        path = os.path.abspath("dist/task_manager.db")
-        path = path.replace('\\', '/')
-        if 'dist/dist/' in path:
-            path = path.replace('dist/dist/', 'dist/')
-
-        self.connection = sqlite3.connect(path)
+        self.connection = sqlite3.connect(path())
         self.cursor = self.connection.cursor()
 
         self.initUI()

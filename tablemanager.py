@@ -1,8 +1,8 @@
-import os
 import sqlite3
 import calendar
 import datetime
 from PyQt5 import QtCore, QtWidgets, QtSql
+from db import path
 from dialogs import TaskDialog
 from styles_and_delegations import QCalendarWidget, TableViewDelegate
 
@@ -12,13 +12,7 @@ class TableManager(QtWidgets.QWidget):
         super().__init__()
         self.user = user + '_table'
 
-        path = os.path.abspath("dist/task_manager.db")
-        path = path.replace('\\', '/')
-        if 'dist/dist/' in path:
-            path = path.replace('dist/dist/', 'dist/')
-
-        self.connection = sqlite3.connect(path)
-        self.connection = sqlite3.connect(path)
+        self.connection = sqlite3.connect(path())
         self.cursor = self.connection.cursor()
 
         self.initUI()

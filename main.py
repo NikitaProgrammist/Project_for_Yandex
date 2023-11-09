@@ -1,6 +1,6 @@
-import os
 import sys
 from PyQt5 import QtWidgets, QtSql, QtCore
+from db import path
 from tablemanager import TableManager, WeekTable
 from listmanager import ListManager, MarkedTasks, ImportantTasks
 from dialogs import LoginDialog
@@ -15,13 +15,8 @@ class MainWindow(QtWidgets.QMainWindow):
             sys.exit(0)
         self.user = x
 
-        path = os.path.abspath("dist/task_manager.db")
-        path = path.replace('\\', '/')
-        if 'dist/dist/' in path:
-            path = path.replace('dist/dist/', 'dist/')
-
         self.db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
-        self.db.setDatabaseName(path)
+        self.db.setDatabaseName(path())
         self.db.open()
         self.initUI()
 
