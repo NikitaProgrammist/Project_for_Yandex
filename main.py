@@ -1,4 +1,4 @@
-import glob
+import os
 import sys
 from PyQt5 import QtWidgets, QtSql, QtCore
 from tablemanager import TableManager, WeekTable
@@ -15,8 +15,12 @@ class MainWindow(QtWidgets.QMainWindow):
             sys.exit(0)
         self.user = x
 
+        path = os.path.abspath("dist/task_manager.db")
+        if 'dist/dist/' in path:
+            path = path.replace('dist/dist/', 'dist/')
+
         self.db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
-        self.db.setDatabaseName(glob.glob('**/' + 'task_manager.db', recursive=True)[0])
+        self.db.setDatabaseName(path)
         self.db.open()
         self.initUI()
 
