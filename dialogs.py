@@ -120,12 +120,14 @@ class LoginDialog(QtWidgets.QDialog):
 
 
 class TaskDialog(QtWidgets.QDialog):
-    def __init__(self, calendar_date: datetime.date, parent: QtWidgets.QWidget = None) -> None:
+    def __init__(self, calendar_date: QtCore.QDate, parent: QtWidgets.QWidget = None) -> None:
         super().__init__(parent)
         self.calendar_date = calendar_date
         self.initUI()
 
     def initUI(self) -> None:
+        self.setWindowTitle("Добавление/изменение задачи")
+
         self.name_label = QtWidgets.QLabel("Название:")
         self.name_field = QtWidgets.QPlainTextEdit()
 
@@ -137,10 +139,10 @@ class TaskDialog(QtWidgets.QDialog):
 
         self.priority_label = QtWidgets.QLabel("Повторяется:")
         self.priority_field = QtWidgets.QComboBox()
-        self.priority_field.addItems(['Никогда', 'Каждый день', 'Каждую неделю', 'Каждый месяц'])
+        self.priority_field.addItems(['Никогда', 'Каждый день', 'Каждую неделю', 'Каждый месяц', 'Каждый год'])
 
         self.time_label = QtWidgets.QLabel("Повторять до:")
-        self.time_field = QtWidgets.QDateEdit(QtCore.QDate(datetime.date.today() + datetime.timedelta(days=1)))
+        self.time_field = QtWidgets.QDateEdit(QtCore.QDate(self.calendar_date.toPyDate() + datetime.timedelta(1)))
         self.time_field.setCalendarPopup(True)
 
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
@@ -172,6 +174,8 @@ class ProblemDialog(QtWidgets.QDialog):
         self.initUI()
 
     def initUI(self) -> None:
+        self.setWindowTitle("Добавление/изменение задачи")
+
         self.name_label = QtWidgets.QLabel("Название:")
         self.name_field = QtWidgets.QLineEdit()
 

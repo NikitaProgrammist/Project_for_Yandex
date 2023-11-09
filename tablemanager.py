@@ -1,7 +1,6 @@
-import calendar
 import sqlite3
+import calendar
 import datetime
-from datetime import timedelta
 from PyQt5 import QtCore, QtWidgets, QtSql
 from dialogs import TaskDialog
 from styles_and_delegations import QCalendarWidget, TableViewDelegate
@@ -132,13 +131,8 @@ class TableManager(QtWidgets.QWidget):
         self.show_day_tasks(calendar_date, self.task_tableview)
 
     def edit_task(self) -> None:
-        selected_row = -1
-        for tableview in self.tableviews:
-            selected_row = tableview.selectionModel().currentIndex().row()
-            if selected_row >= 0:
-                model = self.models[self.tableviews.index(tableview)]
-                table = tableview
-                break
+        selected_row, table = self.select_row_table
+        model = self.models[self.tableviews.index(table)]
         if selected_row < 0:
             return
 
@@ -160,16 +154,11 @@ class TableManager(QtWidgets.QWidget):
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.delete(calendar_date.toPyDate(), name, dateline, deadline, priority, time.toPyDate())
             self.accept(dialog, calendar_date.toPyDate(), model)
-        self.show_day_tasks(calendar_date, table)
+            self.show_day_tasks(calendar_date, table)
 
     def delete_task(self) -> None:
-        selected_row = -1
-        for tableview in self.tableviews:
-            selected_row = tableview.selectionModel().currentIndex().row()
-            if selected_row >= 0:
-                model = self.models[self.tableviews.index(tableview)]
-                table = tableview
-                break
+        selected_row, table = self.select_row_table
+        model = self.models[self.tableviews.index(table)]
         if selected_row < 0:
             return
 
@@ -189,8 +178,7 @@ class TableManager(QtWidgets.QWidget):
                         record.value("name"), QtCore.QTime.fromString(record.value("dateline"), "hh:mm"),
                         QtCore.QTime.fromString(record.value("deadline"), "hh:mm"), record.value("priority"),
                         QtCore.QDate.fromString(record.value("time"), "yyyy-MM-dd").toPyDate())
-            self.show_day_tasks(QtCore.QDate.fromString(model.record(selected_row).value("calendar_date"), "yyyy-MM-dd")
-                                , table)
+            self.show_day_tasks(QtCore.QDate.fromString(record.value("calendar_date"), "yyyy-MM-dd"), table)
 
         elif valid == QtWidgets.QMessageBox.No:
             calendar_date = QtCore.QDate.fromString(model.record(selected_row).value("calendar_date"), "yyyy-MM-dd")
@@ -205,16 +193,7 @@ class TableManager(QtWidgets.QWidget):
         priority = dialog.priority_field.currentIndex()
         time = dialog.time_field.date().toPyDate()
 
-        col = 1
-        if priority == 1:
-            col = int((time - calendar_date).total_seconds() // 3600 // 24) + 1
-        if priority == 2:
-            col = int((time - calendar_date).total_seconds() // 3600 // 24 // 7) + 1
-        if priority == 3:
-            col = int((time.year - calendar_date.year) * 12 + time.month - calendar_date.month -
-                      (time.day < calendar_date.day)) + 1
-
-        for i in range(col):
+        while (calendar_date.year, calendar_date.month, calendar_date.day) <= (time.year, time.month, time.day):
             record = model.record()
             record.setValue("calendar_date", QtCore.QDate(calendar_date).toString("yyyy-MM-dd"))
             record.setValue("name", name)
@@ -225,11 +204,13 @@ class TableManager(QtWidgets.QWidget):
             model.insertRecord(-1, record)
 
             if priority == 1:
-                calendar_date += timedelta(days=1)
-            if priority == 2:
-                calendar_date += timedelta(days=7)
-            if priority == 3:
-                calendar_date += timedelta(days=calendar.monthrange(calendar_date.year, calendar_date.month)[1])
+                calendar_date += datetime.timedelta(1)
+            elif priority == 2:
+                calendar_date += datetime.timedelta(7)
+            elif priority == 3:
+                calendar_date += datetime.timedelta(calendar.monthrange(calendar_date.year, calendar_date.month)[1])
+            elif priority == 4:
+                calendar_date = datetime.datetime(calendar_date.year + 1, calendar_date.month, calendar_date.day)
         model.select()
 
     def delete(self, calendar_date: datetime.date, name: str, dateline: datetime.time, deadline: datetime.time,
@@ -246,11 +227,13 @@ class TableManager(QtWidgets.QWidget):
             if priority == 0:
                 break
             elif priority == 1:
-                calendar_date += timedelta(days=1)
+                calendar_date += datetime.timedelta(1)
             elif priority == 2:
-                calendar_date += timedelta(days=7)
+                calendar_date += datetime.timedelta(7)
             elif priority == 3:
-                calendar_date += timedelta(days=calendar.monthrange(calendar_date.year, calendar_date.month)[1])
+                calendar_date += datetime.timedelta(calendar.monthrange(calendar_date.year, calendar_date.month)[1])
+            elif priority == 4:
+                calendar_date = datetime.datetime(calendar_date.year + 1, calendar_date.month, calendar_date.day)
 
 
 class WeekTable(TableManager):
