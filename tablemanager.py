@@ -13,6 +13,7 @@ class TableManager(QtWidgets.QWidget):
         self.user = user + '_table'
 
         path = os.path.abspath("dist/task_manager.db")
+        path = path.replace('\\', '/')
         if 'dist/dist/' in path:
             path = path.replace('dist/dist/', 'dist/')
 

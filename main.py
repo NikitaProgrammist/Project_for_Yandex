@@ -16,6 +16,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user = x
 
         path = os.path.abspath("dist/task_manager.db")
+        path = path.replace('\\', '/')
         if 'dist/dist/' in path:
             path = path.replace('dist/dist/', 'dist/')
 
