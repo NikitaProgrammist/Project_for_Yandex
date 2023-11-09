@@ -1,4 +1,4 @@
-import glob
+import os
 import sqlite3
 import calendar
 import datetime
@@ -12,7 +12,12 @@ class TableManager(QtWidgets.QWidget):
         super().__init__()
         self.user = user + '_table'
 
-        self.connection = sqlite3.connect(glob.glob('**/' + 'task_manager.db', recursive=True)[0])
+        path = os.path.abspath("dist/task_manager.db")
+        if 'dist/dist/' in path:
+            path = path.replace('dist/dist/', 'dist/')
+
+        self.connection = sqlite3.connect(path)
+        self.connection = sqlite3.connect(path)
         self.cursor = self.connection.cursor()
 
         self.initUI()

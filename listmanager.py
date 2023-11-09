@@ -1,4 +1,4 @@
-import glob
+import os
 import sqlite3
 from PyQt5 import QtCore, QtWidgets, QtSql
 from dialogs import ProblemDialog
@@ -11,7 +11,11 @@ class ListManager(QtWidgets.QWidget):
         self.user = user + '_list'
         self.select_row = -1
 
-        self.connection = sqlite3.connect(glob.glob('**/' + 'task_manager.db', recursive=True)[0])
+        path = os.path.abspath("dist/task_manager.db")
+        if 'dist/dist/' in path:
+            path = path.replace('dist/dist/', 'dist/')
+
+        self.connection = sqlite3.connect(path)
         self.cursor = self.connection.cursor()
 
         self.initUI()

@@ -1,5 +1,5 @@
 import datetime
-import glob
+import os
 import sqlite3
 from PyQt5 import QtWidgets, QtCore
 
@@ -79,7 +79,11 @@ class LoginDialog(QtWidgets.QDialog):
     def initUI(self) -> None:
         self.setWindowTitle("Аутентификация")
 
-        self.connection = sqlite3.connect(glob.glob('**/' + 'task_manager.db', recursive=True)[0])
+        path = os.path.abspath("dist/task_manager.db")
+        if 'dist/dist/' in path:
+            path = path.replace('dist/dist/', 'dist/')
+
+        self.connection = sqlite3.connect(path)
         self.cursor = self.connection.cursor()
 
         self.label_username = QtWidgets.QLabel("Имя пользователя:")
