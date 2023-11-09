@@ -1,3 +1,4 @@
+import os
 import sys
 from PyQt5 import QtWidgets, QtSql, QtCore
 from tablemanager import TableManager, WeekTable
@@ -15,7 +16,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user = x
 
         self.db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
-        self.db.setDatabaseName('dist/task_manager.db')
+        self.db.setDatabaseName(os.path.abspath("dist/task_manager.db"))
         self.db.open()
         self.initUI()
 

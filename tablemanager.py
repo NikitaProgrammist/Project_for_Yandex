@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import calendar
 import datetime
@@ -11,7 +12,7 @@ class TableManager(QtWidgets.QWidget):
         super().__init__()
         self.user = user + '_table'
 
-        self.connection = sqlite3.connect('dist/task_manager.db')
+        self.connection = sqlite3.connect(os.path.abspath("dist/task_manager.db"))
         self.cursor = self.connection.cursor()
 
         self.initUI()
