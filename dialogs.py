@@ -47,9 +47,8 @@ class RegisterDialog(QtWidgets.QDialog):
                 self.connection.commit()
                 QtWidgets.QMessageBox.information(self, "Успех", "Регистрация прошла успешно!")
                 self.accept()
-                conn = sqlite3.connect(path())
                 try:
-                    conn.execute(f'''CREATE TABLE {username}_table
+                    self.cursor.execute(f'''CREATE TABLE {username}_table
                                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
                                       calendar_date DATE NOT NULL,
                                       name TEXT NOT NULL,
@@ -57,16 +56,17 @@ class RegisterDialog(QtWidgets.QDialog):
                                       deadline TIME NOT NULL,
                                       priority INTEGER NOT NULL,
                                       time DATE NOT NULL)''')
-                    conn.execute(f'''CREATE TABLE {username}_list
+                    self.cursor.execute(f'''CREATE TABLE {username}_list
                                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
                                       name TEXT NOT NULL,
                                       description TEXT NOT NULL,
                                       priority INTEGER NOT NULL,
                                       marketed TEXT NOT NULL,
                                       importance TEXT NOT NULL)''')
+                    self.connection.commit()
                 except sqlite3.OperationalError:
                     pass
-                conn.close()
+                self.connection.close()
         else:
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Пожалуйста, заполните все поля!")
 
