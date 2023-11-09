@@ -191,6 +191,10 @@ class ListManager(QtWidgets.QWidget):
     def delete_task(self) -> None:
         selected_row = self.task_table.selectionModel().currentIndex().row()
         if selected_row >= 0:
+            valid = QtWidgets.QMessageBox.question(self, '', f"Вы действительно хотите удалить эту задачу?",
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+            if valid == QtWidgets.QMessageBox.No:
+                return
             self.model.removeRow(selected_row)
         self.filter_func()
 
