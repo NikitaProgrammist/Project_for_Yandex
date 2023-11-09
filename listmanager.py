@@ -114,11 +114,18 @@ class ListManager(QtWidgets.QWidget):
                 priority.append(item.text())
         name = self.filter.text()
 
+        if self.__class__.__name__ == "ListManager":
+            elem_of_query = ""
+        elif self.__class__.__name__ == "MarkedTasks":
+            elem_of_query = "marketed = 'Да' and"
+        elif self.__class__.__name__ == "ImportantTasks":
+            elem_of_query = "importance = 'Да' and"
+
         if "Все" not in priority:
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE priority in ({', '.join(priority)}) and name like 
-            '%{name}%' ORDER BY priority DESC, name ASC""")
+            self.query.exec(f"""SELECT * FROM {self.user} WHERE {elem_of_query} priority in ({', '.join(priority)}) 
+            and name like '%{name}%' ORDER BY priority DESC, name ASC""")
         else:
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE name like '%{name}%' 
+            self.query.exec(f"""SELECT * FROM {self.user} WHERE {elem_of_query} name like '%{name}%' 
             ORDER BY priority DESC, name ASC""")
         self.model.setQuery(self.query)
 
@@ -130,8 +137,15 @@ class ListManager(QtWidgets.QWidget):
 
     def show_all_tasks(self) -> None:
         self.model.select()
-        self.query.exec(f"""SELECT * FROM {self.user}
-        ORDER BY priority DESC, name ASC""")
+
+        if self.__class__.__name__ == "ListManager":
+            query = f"""SELECT * FROM {self.user} ORDER BY priority DESC, name ASC"""
+        elif self.__class__.__name__ == "MarkedTasks":
+            query = f"""SELECT * FROM {self.user} WHERE marketed = 'Да' ORDER BY priority DESC, name ASC"""
+        elif self.__class__.__name__ == "ImportantTasks":
+            query = f"""SELECT * FROM {self.user} WHERE importance = 'Да' ORDER BY priority DESC, name ASC"""
+
+        self.query.exec(query)
         self.model.setQuery(self.query)
         self.task_table.resizeColumnsToContents()
         self.task_table.resizeRowsToContents()
@@ -200,70 +214,8 @@ class ListManager(QtWidgets.QWidget):
 
 
 class MarkedTasks(ListManager):
-    def filter_func(self) -> None:
-        self.model.select()
-
-        priority = []
-        for i in range(self.choose_priority.count()):
-            item = self.choose_priority.model().item(i)
-            if item.checkState() == QtCore.Qt.Checked:
-                priority.append(item.text())
-        name = self.filter.text()
-
-        if "Все" not in priority:
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE marketed = 'Да' and 
-            priority in ({', '.join(priority)}) and name like '%{name}%'
-            ORDER BY priority DESC, name ASC""")
-        else:
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE marketed = 'Да' and name like '%{name}%'
-            ORDER BY priority DESC, name ASC""")
-        self.model.setQuery(self.query)
-
-        self.task_table.resizeColumnsToContents()
-        self.task_table.resizeRowsToContents()
-        self.task_table.hideColumn(0)
-        self.task_table.hideColumn(4)
-        self.task_table.hideColumn(5)
-
-    def show_all_tasks(self) -> None:
-        self.model.select()
-        self.query.exec(f"""SELECT * FROM {self.user} WHERE marketed = 'Да'
-        ORDER BY priority DESC, name ASC""")
-        self.model.setQuery(self.query)
-        self.task_table.resizeColumnsToContents()
-        self.task_table.resizeRowsToContents()
+    pass
 
 
 class ImportantTasks(ListManager):
-    def filter_func(self) -> None:
-        self.model.select()
-
-        priority = []
-        for i in range(self.choose_priority.count()):
-            item = self.choose_priority.model().item(i)
-            if item.checkState() == QtCore.Qt.Checked:
-                priority.append(item.text())
-        name = self.filter.text()
-
-        if "Все" not in priority:
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE importance = 'Да' and 
-            priority in ({', '.join(priority)}) and name like '%{name}%'
-            ORDER BY priority DESC, name ASC""")
-        else:
-            self.query.exec(f"""SELECT * FROM {self.user} WHERE importance = 'Да' and name like '%{name}%'
-            ORDER BY priority DESC, name ASC""")
-        self.model.setQuery(self.query)
-
-        self.task_table.resizeColumnsToContents()
-        self.task_table.resizeRowsToContents()
-        self.task_table.hideColumn(0)
-        self.task_table.hideColumn(4)
-        self.task_table.hideColumn(5)
-
-    def show_all_tasks(self) -> None:
-        self.model.select()
-        self.query.exec(f"""SELECT * FROM {self.user} WHERE importance = 'Да'
-        ORDER BY priority DESC, name ASC""")
-        self.model.setQuery(self.query)
-        self.task_table.resizeColumnsToContents()
-        self.task_table.resizeRowsToContents()
+    pass
