@@ -204,7 +204,9 @@ class TableManager(QtWidgets.QWidget):
             record.setValue("time", QtCore.QDate(time).toString("yyyy-MM-dd"))
             model.insertRecord(-1, record)
 
-            if priority == 1:
+            if priority == 0:
+                break
+            elif priority == 1:
                 calendar_date += datetime.timedelta(1)
             elif priority == 2:
                 calendar_date += datetime.timedelta(7)
