@@ -12,7 +12,12 @@ class RegisterDialog(QtWidgets.QDialog):
     def initUI(self) -> None:
         self.setWindowTitle("Регистрация")
 
-        self.connection = sqlite3.connect("dist/task_manager.db")
+        path = os.path.abspath("dist/task_manager.db")
+        path = path.replace('\\', '/')
+        if 'dist/dist/' in path:
+            path = path.replace('dist/dist/', 'dist/')
+
+        self.connection = sqlite3.connect(path)
         self.cursor = self.connection.cursor()
 
         self.label_username = QtWidgets.QLabel("Имя пользователя:")
@@ -83,7 +88,7 @@ class LoginDialog(QtWidgets.QDialog):
         path = path.replace('\\', '/')
         if 'dist/dist/' in path:
             path = path.replace('dist/dist/', 'dist/')
-        print(path)
+
         self.connection = sqlite3.connect(path)
         self.cursor = self.connection.cursor()
 
