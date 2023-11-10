@@ -105,8 +105,14 @@ class TableManager(QtWidgets.QWidget):
         delegate = TableViewDelegate()
         for i in range(tableview.model().rowCount()):
             tableview.setItemDelegateForRow(i, delegate)
+
         tableview.resizeColumnsToContents()
         tableview.resizeRowsToContents()
+        if self.__class__.__name__ == "WeekTable":
+            resolution = QtWidgets.QDesktopWidget().screenGeometry().width()
+            for i in self.tableviews:
+                i.setColumnWidth(2, resolution // 15)
+
         self.select_row_table = (-1, self.tableviews[0])
 
     def show_all_tasks(self) -> None:
