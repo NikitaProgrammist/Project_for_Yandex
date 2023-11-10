@@ -229,8 +229,7 @@ class TableManager(QtWidgets.QWidget):
             self.cursor.execute(f"""DELETE FROM {self.user} WHERE 
                             calendar_date = '{QtCore.QDate(calendar_date).toString("yyyy-MM-dd")}' and 
                             name = '{name}' and dateline = '{QtCore.QTime(dateline).toString("hh:mm")}' and 
-                            deadline = '{QtCore.QTime(deadline).toString("hh:mm")}' and priority = '{priority}' and 
-                            time = '{QtCore.QDate(time).toString("yyyy-MM-dd")}'""")
+                            deadline = '{QtCore.QTime(deadline).toString("hh:mm")}' and priority = '{priority}'""")
             self.connection.commit()
 
             if priority == 0:
