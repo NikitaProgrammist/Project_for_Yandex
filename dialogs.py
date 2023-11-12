@@ -191,12 +191,16 @@ class ProblemDialog(QtWidgets.QDialog):
         self.marketed_field.addItems(['Да', 'Нет'])
         if self.parent.__class__.__name__ == 'MarkedTasks':
             self.marketed_field.setEnabled(False)
+        else:
+            self.marketed_field.setCurrentIndex(1)
 
         self.importance_label = QtWidgets.QLabel("Важная:")
         self.importance_field = QtWidgets.QComboBox()
         self.importance_field.addItems(['Да', 'Нет'])
         if self.parent.__class__.__name__ == 'ImportantTasks':
             self.importance_field.setEnabled(False)
+        else:
+            self.importance_field.setCurrentIndex(1)
 
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
 
