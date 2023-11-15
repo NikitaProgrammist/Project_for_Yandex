@@ -19,8 +19,8 @@ class TableViewDelegate(QtWidgets.QStyledItemDelegate):
         dateline = datetime.datetime.strptime(model.data(index.sibling(index.row(), 3)), "%H:%M").time()
         today_date = datetime.date.today()
         today_time = datetime.datetime.today().time()
-        if (table_day < today_date or (table_day == today_date and deadline < today_time)) and deadline > dateline:
-             option.palette.setColor(option.palette.Text, QtGui.QColor(125, 125, 125))
+        if table_day < today_date or (table_day == today_date and today_time > deadline > dateline):
+            option.palette.setColor(option.palette.Text, QtGui.QColor(125, 125, 125))
         else:
             option.palette.setColor(option.palette.Text, QtGui.QColor(0, 0, 0))
 
